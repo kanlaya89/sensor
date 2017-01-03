@@ -1,6 +1,6 @@
 var app = require('./app'),
     http = require('http'),
-    mqtt_client = require('./mqtt_client')
+    mqtt_client = require('./mqtt-client')
 
 
 var server = http.createServer(app)

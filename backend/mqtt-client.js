@@ -1,5 +1,8 @@
 var mqtt = require('mqtt'),
-    mraa = require('mraa')
+    mraa = require('mraa'),
+    fs = require('fs'),
+    protobuf = require('protocol-buffers'),
+    SerialPort = require('serialport')
 
 // -----------------------------------
 //  Read from config.js
@@ -62,77 +65,77 @@ const tempOffSet = 0;
 // }
 
 
-// readMirco = function() {
-//   u = new mraa.Uart(0); // UART0 Location: Pins 0 (RX) and 1 (TX)
-//   var serialPath = u.getDevicePath(); // "/dev/ttyMFD1"
-//   u.setMode(8, 0, 1);
-//   u.setFlowcontrol(false, false);
-//   var serialPort = new SerialPort(serialPath, {
-//       baudrate: 115200
-//   });
-//   // On SerialPort
-//   serialPort.on("open", function(){
-//     console.log("SerialPort opened...");
-//     serialPort.on("data", function(data) { //Read available data from serial port
-//       var type = data.toString('hex', 8, 9); // get type from payload
-//       switch(type) {
-//         case '01': // 波形データ
-//           var heart_buf = new Buffer(data.toString('hex', 10,12), 'hex')
-//             , breath_buf = new Buffer(data.toString('hex', 12,14), 'hex')
-//             , motion_buf = new Buffer(data.toString('hex', 14,16), 'hex')
-//             , heart_w = heart_buf.readInt16BE(0)
-//             , breath_w = breath_buf.readInt16BE(0)
-//             , motion_w = motion_buf.readInt16BE(0);
-//           var payload = schema.Sensor.encode({
-//             heart_w: heart_w,
-//             breath_w: breath_w,
-//             motion_w: motion_w
-//           });
-//           var topic = topicBase + 'micro_wave';
-//           client.publish(topic, payload);
-//           break;
-//         case '02': // 心拍数（+ 確度）
-//           var heart_buf = new Buffer(data.toString('hex', 10,11), 'hex')
-//             , accuracy_buf = new Buffer(data.toString('hex', 11,12), 'hex')
-//             , heart = heart_buf.readInt8(0)
-//             , accuracy = accuracy_buf.readInt8(0);
-//           console.log('心拍数：'+ heart, '確度：'+ accuracy);
-//           var payload = schema.Sensor.encode({
-//             heart: heart.toString(),
-//             accuracy: accuracy.toString()
-//           });
-//           var topic = topicBase + 'heart';
-//           client.publish(topic, payload);
-//           break;
-//         case '03': // 呼吸数（+ 確度）
-//           var breath_buf = new Buffer(data.toString('hex', 10,11), 'hex')
-//             , accuracy_buf = new Buffer(data.toString('hex', 11,12), 'hex')
-//             , breath = breath_buf.readInt8(0)
-//             , accuracy = accuracy_buf.readInt8(0);
-//           console.log('呼吸数：'+ breath, '確度：'+ accuracy);
-//           var payload = schema.Sensor.encode({
-//             heart: breath.toStrin(),
-//             accuracy: accuracy.toString()
-//           });
-//           var topic = topicBase + 'breath';
-//           client.publish(topic, payload);
-//           break;
-//         case '0a': // 体動量
-//           var motion_buf = new Buffer(data.toString('hex', 10,11), 'hex')
-//             , motion = motion_buf.readInt16BE(0);
-//           console.log('体動量：'+ motion);
-//           var topic = topicBase + 'motion';
-//           var payload = schema.Sensor.encode({
-//             motion: motion
-//           });
-//           client.publish(topic, payload);
-//           break;
-//         default: break;
-//       }
-//     })
-//   })
-// }
-// readMirco();
+readMirco = function() {
+  u = new mraa.Uart(0); // UART0 Location: Pins 0 (RX) and 1 (TX)
+  var serialPath = u.getDevicePath(); // "/dev/ttyMFD1"
+  u.setMode(8, 0, 1);
+  u.setFlowcontrol(false, false);
+  var serialPort = new SerialPort(serialPath, {
+      baudrate: 115200
+  });
+  // On SerialPort
+  serialPort.on("open", function(){
+    console.log("SerialPort opened...");
+    serialPort.on("data", function(data) { //Read available data from serial port
+      var type = data.toString('hex', 8, 9); // get type from payload
+      switch(type) {
+        case '01': // 波形データ
+          var heart_buf = new Buffer(data.toString('hex', 10,12), 'hex')
+            , breath_buf = new Buffer(data.toString('hex', 12,14), 'hex')
+            , motion_buf = new Buffer(data.toString('hex', 14,16), 'hex')
+            , heart_w = heart_buf.readInt16BE(0)
+            , breath_w = breath_buf.readInt16BE(0)
+            , motion_w = motion_buf.readInt16BE(0);
+          var payload = schema.Sensor.encode({
+            heart_w: heart_w,
+            breath_w: breath_w,
+            motion_w: motion_w
+          });
+          var topic = topicBase + 'micro_wave';
+          client.publish(topic, payload);
+          break;
+        case '02': // 心拍数（+ 確度）
+          var heart_buf = new Buffer(data.toString('hex', 10,11), 'hex')
+            , accuracy_buf = new Buffer(data.toString('hex', 11,12), 'hex')
+            , heart = heart_buf.readInt8(0)
+            , accuracy = accuracy_buf.readInt8(0);
+          console.log('心拍数：'+ heart, '確度：'+ accuracy);
+          var payload = schema.Sensor.encode({
+            heart: heart.toString(),
+            accuracy: accuracy.toString()
+          });
+          var topic = topicBase + 'heart';
+          client.publish(topic, payload);
+          break;
+        case '03': // 呼吸数（+ 確度）
+          var breath_buf = new Buffer(data.toString('hex', 10,11), 'hex')
+            , accuracy_buf = new Buffer(data.toString('hex', 11,12), 'hex')
+            , breath = breath_buf.readInt8(0)
+            , accuracy = accuracy_buf.readInt8(0);
+          console.log('呼吸数：'+ breath, '確度：'+ accuracy);
+          var payload = schema.Sensor.encode({
+            heart: breath.toStrin(),
+            accuracy: accuracy.toString()
+          });
+          var topic = topicBase + 'breath';
+          client.publish(topic, payload);
+          break;
+        case '0a': // 体動量
+          var motion_buf = new Buffer(data.toString('hex', 10,11), 'hex')
+            , motion = motion_buf.readInt16BE(0);
+          console.log('体動量：'+ motion);
+          var topic = topicBase + 'motion';
+          var payload = schema.Sensor.encode({
+            motion: motion
+          });
+          client.publish(topic, payload);
+          break;
+        default: break;
+      }
+    })
+  })
+}
+readMirco();
 
 // // -----------------------------------
 // // Publish function
