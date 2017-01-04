@@ -1,3 +1,41 @@
-<h1>
-  {{title}}
-</h1>
+<h1>Sensor Node Settings</h1>
+<div [hidden]="!isSaved.status">
+    <h3>Registered</h3>
+    <table>
+        <tr>
+            <td style="text-align: right;">Room Number:</td>
+            <td style="text-align: left;">{{savedData.room}}</td>
+        </tr>
+        <tr>
+            <td style="text-align: right;">Node Name:</td>
+            <td style="text-align: left;">{{savedData.node}}</td>
+        </tr>
+        <tr>
+            <td>
+                <button (click)="edit()">Edit</button>
+            </td>
+        </tr>
+    </table>
+</div>
+<form [hidden]="isSaved.status" name="form1" (ngSubmit)="onSubmit()">
+    <table>
+        <caption>-- Register Sensor Node --</caption>
+        <tr>
+            <td style="text-align: right;">Room Number:</td>
+            <td><input type="text" name="room" [(ngModel)]="data.room" required></td>
+            <td style="text-align: left;">Ex: 101</td>
+        </tr>
+        <tr>
+            <td style="text-align: right;">Node Name:</td>
+            <td><input type="type" name="node" [(ngModel)]="data.node" required></td>
+            <td style="text-align: left;">Ex: A</td>
+        </tr>
+        <tr>
+            <td></td>
+            <td>
+                <button type="submit">Register</button>
+            </td>
+            <td></td>
+        </tr>
+    </table>
+</form>
